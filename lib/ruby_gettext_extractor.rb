@@ -5,6 +5,7 @@
 
 require 'rubygems'
 require 'ruby_parser'
+require 'set'
 
 begin
   require 'gettext/tools/rgettext'
@@ -125,6 +126,32 @@ module RubyGettextExtractor
       end
 
       super recv, meth, args
+    end
+    
+    def new_class klass_data
+      begin
+        klass = Kernel.const_get(klass_data[2])
+      rescue TypeError, NameError
+        # The class is inside a namespace, so we can't find it only using the class name. This would almost never
+        # happen for models, so, let's ignore it for now.
+      end
+      
+      if !klass.nil? and klass.ancestors.include? ActiveRecord::Base
+        strings = Set.new
+        strings.add(klass.name)
+        strings.add(klass.human_name)
+        strings.add(klass.model_name)
+        strings.merge(klass.column_names)
+        strings.merge(klass.column_names.map { |name| klass.human_attribute_name(name) })
+        strings.merge(klass.column_names.map { |name| klass.human_attribute_name_without_gettext_activerecord(name) })
+        strings.merge(klass.column_names.map { |name| klass.human_attribute_table_name_for_error(name) })
+
+        strings.each do |string|
+          add_string_to_translate("String automatically inferred from model by Rails\004#{string}")
+        end
+      end
+
+      super klass_data
     end
     
     def add_string_to_translate(key)

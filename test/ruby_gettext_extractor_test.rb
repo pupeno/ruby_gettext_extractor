@@ -6,7 +6,7 @@ require 'test_helper'
 class TestGetTextParser < Test::Unit::TestCase
   def test_ruby
     ary = RubyGettextExtractor.parse('test/cases/gettext.rb')
-
+    
     assert_equal(['aaa', 'test/cases/gettext.rb:8'], ary[0])
     assert_equal(['aaa\n', 'test/cases/gettext.rb:12'], ary[1])
     assert_equal(['bbb\nccc', 'test/cases/gettext.rb:16'], ary[2])
@@ -84,5 +84,15 @@ class TestGetTextParser < Test::Unit::TestCase
     assert_equal(["ruby_is_wicked", "test/cases/new.rb:6"], ary[4])
     assert_equal(["foocliclaclublibuzbiz", "test/cases/new.rb:7"], ary[5])
     assert_equal(["Movie missing", "test/cases/new.rb:8", "test/cases/new.rb:12"], ary[6])
+  end
+  
+  # Simulate a Ruby on Rails model and extract special strings.
+  def test_ruby_on_rails_model
+    # Using sets so the order is not important.
+    expected = Set.new([["String automatically inferred from model by Rails\004User", "test/cases/model.rb:32"], ["String automatically inferred from model by Rails\004username", "test/cases/model.rb:32"], ["String automatically inferred from model by Rails\004password", "test/cases/model.rb:32"]])
+    require "test/cases/model.rb"
+    ary = RubyGettextExtractor.parse('test/cases/model.rb')
+    
+    assert_equal(expected, Set.new(ary))
   end
 end
