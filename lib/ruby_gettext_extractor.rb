@@ -121,20 +121,24 @@ module RubyGettextExtractor
           # skip
         end
 
-        if key
-          res = @targets[key]
-
-          unless res
-            res = [key]
-            @results << res
-            @targets[key] = res
-          end
-
-          res << "#{@filename}:#{lexer.lineno}"
-        end
+        add_string_to_translate(key)
       end
 
       super recv, meth, args
+    end
+    
+    def add_string_to_translate(key)
+      if key
+        res = @targets[key]
+
+        unless res
+          res = [key]
+          @results << res
+          @targets[key] = res
+        end
+
+        res << "#{@filename}:#{lexer.lineno}"
+      end
     end
   end
 end
